@@ -12,7 +12,7 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasMany, HasRoles, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -50,7 +50,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function room(): HasMany {
-        return $this->hasMany(Room::class);
+    public function room() {
+        return $this->belongsToMany(Room::class, 'room_users');
     }
 }
