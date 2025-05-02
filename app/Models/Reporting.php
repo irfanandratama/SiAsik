@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notifiable;
 
 class Reporting extends Model
 {
-    use HasOne, Notifiable;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -30,6 +30,11 @@ class Reporting extends Model
     public function informer_i(): HasOne
     {
         return $this->hasOne(User::class, 'id', 'informer');
+    }
+
+    public function assign(): HasOne
+    {
+        return $this->hasOne(User::class, 'id', 'assign_to');
     }
 
     public function cleaner(): HasOne
