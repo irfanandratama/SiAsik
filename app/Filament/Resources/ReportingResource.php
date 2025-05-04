@@ -34,8 +34,12 @@ class ReportingResource extends Resource
                     ->preload()
                     ->live()
                     ->afterStateUpdated(fn (Set $set, $state) => $set('informer_name', User::firstWhere('id', $state)->name))
-                    ->label(__('ticket.field.informer')),
-                Forms\Components\Hidden::make('informer_name'),
+                    ->label(__('ticket.field.informer'))
+                    ->hiddenOn('edit'),
+                Forms\Components\TextInput::make('informer_name')
+                    ->hiddenOn('create')
+                    ->disabled()
+                    ->dehydrated(),
                 Forms\Components\Select::make('room_id')
                     ->disabledOn('edit')
                     ->relationship('room', 'name')
@@ -86,7 +90,7 @@ class ReportingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('informer_i.name')->label('Informer')->searchable(),
+                Tables\Columns\TextColumn::make('informer_name')->label('Informer')->searchable(),
                 Tables\Columns\TextColumn::make('assign.name')->label('Assign To')->searchable(),
                 Tables\Columns\TextColumn::make('room.name')->label('Room')->searchable(),
                 Tables\Columns\TextColumn::make('condition.name')->label('Condition')->searchable(),
