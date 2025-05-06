@@ -23,6 +23,11 @@ class ReportingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getModelLabel(): string
+    {
+        return __('reporting.title');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -34,15 +39,20 @@ class ReportingResource extends Resource
                     ->preload()
                     ->live()
                     ->afterStateUpdated(fn (Set $set, $state) => $set('informer_name', User::firstWhere('id', $state)->name))
-                    ->label(__('ticket.field.informer')),
-                Forms\Components\Hidden::make('informer_name'),
+                    ->label(__('reporting.field.informer'))
+                    ->hiddenOn('edit'),
+                Forms\Components\TextInput::make('informer_name')
+                    ->hiddenOn('create')
+                    ->disabled()
+                    ->dehydrated(),
                 Forms\Components\Select::make('room_id')
                     ->disabledOn('edit')
                     ->relationship('room', 'name')
                     ->preload()
                     ->searchable()
                     ->live()
-                    ->afterStateUpdated(fn (Set $set) => $set('assign_to', [])),
+                    ->afterStateUpdated(fn (Set $set) => $set('assign_to', []))
+                    ->label(__('reporting.field.room')),
                 Forms\Components\Select::make('assign_to')
                     ->relationship(
                         name: 'assign',
@@ -57,17 +67,19 @@ class ReportingResource extends Resource
                     // ->afterStateUpdated(fn (Set $set, ?string $state) => $set('status_id', 3))
                     // ->disabled(fn(): bool => (auth()->user()->hasRole('cleaner') || auth()->user()->hasRole('pegawai')))
                     // ->required(fn(): bool => (auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('kepala_sub_bagian')))
-                    ->label(__('ticket.field.assign_to')),
+                    ->label(__('reporting.field.assign_to'))
+                    ->selectablePlaceholder(false),
                 Forms\Components\Select::make('condition_id')
                     ->relationship('condition', 'name')
                     ->required()
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->label(__('reporting.field.condition')),
                 Forms\Components\Textarea::make('description')
                     ->required()
                     ->disabledOn('edit')
                     ->columnSpanFull()
-                    ->label(__('ticket.field.description')),
+                    ->label(__('reporting.field.description')),
                 Forms\Components\Select::make('status_id')
                     ->disabled()
                     ->dehydrated()
@@ -78,7 +90,7 @@ class ReportingResource extends Resource
                         '2xl' => 2,
                     ])
                     ->required()
-                    ->default(1)->label(__('ticket.field.status_id')),
+                    ->default(1)->label(__('reporting.field.status')),
             ]);
     }
 
@@ -86,11 +98,11 @@ class ReportingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('informer_i.name')->label('Informer')->searchable(),
-                Tables\Columns\TextColumn::make('assign.name')->label('Assign To')->searchable(),
-                Tables\Columns\TextColumn::make('room.name')->label('Room')->searchable(),
-                Tables\Columns\TextColumn::make('condition.name')->label('Condition')->searchable(),
-                Tables\Columns\TextColumn::make('status.name')->label('Status')->searchable(),
+                Tables\Columns\TextColumn::make('informer_name')->label(__('reporting.column.informer'))->searchable(),
+                Tables\Columns\TextColumn::make('assign.name')->label(__('reporting.column.assign_to'))->searchable(),
+                Tables\Columns\TextColumn::make('room.name')->label(__('reporting.column.room'))->searchable(),
+                Tables\Columns\TextColumn::make('condition.name')->label(__('reporting.column.condition'))->searchable(),
+                Tables\Columns\TextColumn::make('status.name')->label(__('reporting.column.status'))->searchable(),
             ])
             ->filters([
                 //

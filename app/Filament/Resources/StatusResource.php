@@ -17,7 +17,7 @@ class StatusResource extends Resource
 {
     protected static ?string $model = Status::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-s-check-badge';
 
     protected static ?string $navigationGroup = 'Master Menu';
 
@@ -42,15 +42,18 @@ class StatusResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->label(__('room.column.name')),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->label(__('room.column.created_at')),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->label(__('room.column.updated_at')),
             ])
             ->filters([
                 //
