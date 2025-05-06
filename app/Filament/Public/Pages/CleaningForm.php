@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class CleaningForm extends BasePage implements HasForms
 {
@@ -35,8 +36,7 @@ class CleaningForm extends BasePage implements HasForms
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('informer_name')                    
-                    ->afterStateUpdated(fn (Set $set, $state) => $set('informer_name', $state))
+                Forms\Components\TextInput::make('informer_name')
                     ->label('Nama')
                     ->placeholder('Isi dengan nama Anda'),
                 Forms\Components\Select::make('room_id')
@@ -55,6 +55,7 @@ class CleaningForm extends BasePage implements HasForms
                     ->dehydrated(),
                 Forms\Components\Select::make('assign_to')
                     ->key('petugas')
+                    ->extraInputAttributes(['wire:key' => Str::random(10)])
                     ->relationship(
                         name: 'assign',
                         titleAttribute: 'name', 
@@ -62,16 +63,18 @@ class CleaningForm extends BasePage implements HasForms
                         'room_users.user_id')->join('rooms', 'rooms.id', '=', 
                         'room_users.room_id')->where('room_users.room_id', $get('room_id')),
                     )
-                    ->searchable()
+                    // ->searchable()
                     ->live()
                     ->preload()
                     ->label(__('Petugas Kebersihan'))
                     ->placeholder('Pilih petugas kebersihan'),
+                    // ->selectablePlaceholder(false)
+                    // ->afterStateUpdated(fn (Set $set, $state) => $set('assign_to', $state)),
                 Forms\Components\Select::make('condition_id')
                     ->relationship('condition', 'name')
                     ->required()
                     ->preload()
-                    ->searchable(),
+                    ->label('Kondisi Saat Ini'),
                 Forms\Components\Textarea::make('description')
                     ->required()
                     ->disabledOn('edit')
