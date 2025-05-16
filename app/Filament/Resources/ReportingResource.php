@@ -12,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -109,6 +110,30 @@ class ReportingResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('approvePost')
+                    ->fillForm(fn (Reporting $record): array => [
+                        'room_id' => $record->room->id,
+                        'assign_to' => $record->assign->id,
+                        'condition_id' => $record->condition->id,
+                        'description' => $record->description,
+                    ])
+                    ->form([
+                        Forms\Components\Select::make('room_id')
+                            ->relationship('room', 'name')
+                            ->label(__('reporting.field.room')),
+                        Forms\Components\Select::make('assign_to')
+                            ->relationship('assign', 'name')
+                            ->label(__('reporting.field.assign_to')),
+                        Forms\Components\Select::make('condition_id')
+                            ->relationship('condition', 'name')
+                            ->label(__('reporting.field.condition')),
+                        Forms\Components\Textarea::make('description')
+                            ->label(__('reporting.field.description')),
+                    ])
+                    ->disabledForm()
+                    ->action(function (Reporting $record): void {
+                        $record->approve();
+                    })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
