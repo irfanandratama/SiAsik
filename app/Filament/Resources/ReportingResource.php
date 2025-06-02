@@ -75,6 +75,8 @@ class ReportingResource extends Resource
                     ->required()
                     ->preload()
                     ->searchable()
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set, ?string $state) => $set('status_id', 4))
                     ->label(__('reporting.field.condition')),
                 Forms\Components\Textarea::make('description')
                     ->required()
@@ -92,6 +94,11 @@ class ReportingResource extends Resource
                     ])
                     ->required()
                     ->default(1)->label(__('reporting.field.status')),
+                Forms\Components\Textarea::make('approval_message')
+                    ->hidden(fn (Get $get): bool => ! $get('approval_message'))
+                    ->disabled()
+                    ->columnSpanFull()
+                    ->label(__('reporting.field.approval_message')),
             ]);
     }
 
@@ -109,8 +116,9 @@ class ReportingResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Action::make('approvePost')
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn($record) => ($record->status->id == 4 || $record->status->id == 3)),
+                Action::make('Setuju')
                     ->fillForm(fn (Reporting $record): array => [
                         'room_id' => $record->room->id,
                         'assign_to' => $record->assign->id,
@@ -120,20 +128,79 @@ class ReportingResource extends Resource
                     ->form([
                         Forms\Components\Select::make('room_id')
                             ->relationship('room', 'name')
-                            ->label(__('reporting.field.room')),
+                            ->label(__('reporting.field.room'))
+                            ->disabled(),
                         Forms\Components\Select::make('assign_to')
                             ->relationship('assign', 'name')
-                            ->label(__('reporting.field.assign_to')),
+                            ->label(__('reporting.field.assign_to'))
+                            ->disabled(),
                         Forms\Components\Select::make('condition_id')
                             ->relationship('condition', 'name')
-                            ->label(__('reporting.field.condition')),
+                            ->label(__('reporting.field.condition'))
+                            ->disabled(),
                         Forms\Components\Textarea::make('description')
-                            ->label(__('reporting.field.description')),
+                            ->label(__('reporting.field.description'))
+                            ->disabled(),
+                        Forms\Components\Textarea::make('approval_message')
+                            ->label(__('reporting.field.approval_message')),
                     ])
-                    ->disabledForm()
-                    ->action(function (Reporting $record): void {
-                        $record->approve();
+                    // ->disabledForm()
+                    ->action(function (Reporting $record, array $data): void {
+                        $record->status_id = 3;
+                        $record->approval_message($data['approval_message']);
+                        $record->save();
                     })
+                    ->visible(function (Reporting $record) {
+                        if ($record->assign_to && $record->status_id == 4) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                        
+                    })
+                    ->modalSubmitActionLabel('Setuju'),
+                Action::make('Tolak')
+                    ->fillForm(fn (Reporting $record): array => [
+                        'room_id' => $record->room->id,
+                        'assign_to' => $record->assign->id,
+                        'condition_id' => $record->condition->id,
+                        'description' => $record->description,
+                    ])
+                    ->form([
+                        Forms\Components\Select::make('room_id')
+                            ->relationship('room', 'name')
+                            ->label(__('reporting.field.room'))
+                            ->disabled(),
+                        Forms\Components\Select::make('assign_to')
+                            ->relationship('assign', 'name')
+                            ->label(__('reporting.field.assign_to'))
+                            ->disabled(),
+                        Forms\Components\Select::make('condition_id')
+                            ->relationship('condition', 'name')
+                            ->label(__('reporting.field.condition'))
+                            ->disabled(),
+                        Forms\Components\Textarea::make('description')
+                            ->label(__('reporting.field.description'))
+                            ->disabled(),
+                        Forms\Components\Textarea::make('approval_message')
+                            ->label(__('reporting.field.approval_message')),
+                    ])
+                    // ->disabledForm()
+                    ->action(function (Reporting $record, array $data): void {
+                        $record->status_id = 2;
+                        $record->condition_id = 2;
+                        $record->approval_message = $data['approval_message'];
+                        $record->save();
+                    })
+                    ->visible(function (Reporting $record) {
+                        if ($record->assign_to && $record->status_id == 4) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                        
+                    })
+                    ->modalSubmitActionLabel('Tolak'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
