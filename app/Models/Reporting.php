@@ -25,6 +25,7 @@ class Reporting extends Model
         'status_id',
         'created_by',
         'updated_by',
+        'approval_message',
     ];
 
     public function informer_i(): HasOne

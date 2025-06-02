@@ -27,5 +27,6 @@ return [
     'field.condition' => 'Kondisi',
     'field.description' => 'Keterangan',
     'field.status' => 'Status',
+    'field.approval_message' => 'Keterangan Persetujuan',
 
 ];
