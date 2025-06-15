@@ -2,10 +2,15 @@
 
 namespace App\Filament\Public\Pages;
 
+use App\Mail\NewReport;
 use App\Models\Reporting;
+use App\Models\Room;
+use App\Models\User;
+use Filament\Actions;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\BasePage;
 use Filament\Forms\Form;
@@ -13,6 +18,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class CleaningForm extends BasePage implements HasForms
 {
@@ -96,13 +102,52 @@ class CleaningForm extends BasePage implements HasForms
             $this->form->model($record)->saveRelationships();
 
             Notification::make()
-                ->title(__('Saved successfully'))
+                ->title(__('Laporan Anda sudah terkirim.'))
                 ->success()
                 ->send();
 
             $this->form->fill();
 
-            $value = env('APP_URL', 'http://localhost:8000/admin');
+            $head_divisions = User::role('kepala_sub_bagian')->get();
+            $room = Room::find($data['room_id']);
+            foreach ($head_divisions as $head_division) {
+                Notification::make()
+                ->title("Laporan Kebersihan Baru di ruang {$room->name}")
+                ->body("{$data['description']}")
+                ->icon('heroicon-s-ticket')
+                ->actions([
+                    Action::make('Baca')
+                        ->button()
+                        ->markAsRead()
+                ])
+                ->sendToDatabase($head_division);
+
+                $maildata = [
+                    'name' => $head_division->name,
+                    'message' => "Laporan kebersihan baru telah masuk melalui SiAsik di ruang {$room->name} dengan deskripsi {$data['description']}. Silakan membuka aplikasi untuk melihat lebih detail."
+                ];
+                Mail::to($head_division->email)->send(new NewReport($maildata));
+            }
+
+            $cleaner = User::find($data['assign_to']);
+            Notification::make()
+                ->title("Laporan Kebersihan Baru di ruang {$room->name}")
+                ->body("{$data['description']}")
+                ->icon('heroicon-s-ticket')
+                ->actions([
+                    Action::make('Baca')
+                        ->button()
+                        ->markAsRead()
+                ])
+                ->sendToDatabase($cleaner);
+            
+            $maildata = [
+                'name' => $cleaner->name,
+                'message' => "Laporan kebersihan baru telah masuk melalui SiAsik di ruang {$room->name} dengan deskripsi {$data['description']}. Silakan membuka aplikasi untuk melihat lebih detail."
+            ];
+            Mail::to($cleaner->email)->send(new NewReport($maildata));
+
+            $value = env('APP_URL', 'http://localhost:8000/');
 
             redirect($value);
 

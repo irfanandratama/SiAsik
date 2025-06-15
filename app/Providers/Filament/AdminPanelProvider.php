@@ -57,7 +57,11 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
             ])
-            ->databaseNotifications();
+            ->databaseNotifications()
+            ->brandName('SiAsik')
+            ->brandLogo(asset('images/logo.png'))
+            ->brandLogoHeight('9rem')
+            ->favicon(asset('images/favicon.png'));
     }
 }
 

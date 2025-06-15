@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ReportingResource\Pages;
 use App\Filament\Resources\ReportingResource\RelationManagers;
+use App\Mail\NewReport;
 use App\Models\Reporting;
 use App\Models\User;
 use Filament\Forms;
@@ -17,6 +18,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use Filament\Notifications\Notification;
 
 class ReportingResource extends Resource
 {
@@ -146,9 +149,22 @@ class ReportingResource extends Resource
                     ])
                     // ->disabledForm()
                     ->action(function (Reporting $record, array $data): void {
+
                         $record->status_id = 3;
-                        $record->approval_message($data['approval_message']);
+                        $record->approval_message = $data['approval_message'];
                         $record->save();
+
+                        $cleaner = User::find($record->assign_to);
+                        Notification::make()
+                            ->title('Pelaksanaan kebersihan kamu sudah disetujui.')
+                            ->icon('heroicon-s-ticket')
+                            ->body("Selamat! Pelaksanaan kebersihan kamu sudah disetujui.")
+                            ->sendToDatabase($cleaner);
+                        $maildata = [
+                            'name' => $cleaner->name,
+                            'message' => "Selamat! Pelaksanaan kebersihan kamu sudah disetujui. Silakan membuka aplikasi untuk melihat lebih detail."
+                        ];
+                        Mail::to($cleaner->email)->send(new NewReport($maildata));
                     })
                     ->visible(function (Reporting $record) {
                         if ($record->assign_to && $record->status_id == 4) {
@@ -191,6 +207,24 @@ class ReportingResource extends Resource
                         $record->condition_id = 2;
                         $record->approval_message = $data['approval_message'];
                         $record->save();
+
+                        $cleaner = User::find($record->assign->id);
+                        Notification::make()
+                            ->title('Pelaksanaan kebersihan kamu ditolak.')
+                            ->icon('heroicon-s-ticket')
+                            ->body("Sayang sekali. Pelaksanaan kebersihan kamu ditolak. Silakan cek pesan penolakan pada menu Pelaporan Kebersihan.")
+                            // ->actions([
+                            //     Action::make('Lihat')
+                            //         ->url(TicketResource::getUrl('view', ['record' => $ticket->id]))
+                            //         ->button()
+                            //         ->markAsRead(),
+                            // ])
+                            ->sendToDatabase($cleaner);
+                        $maildata = [
+                            'name' => $cleaner->name,
+                            'message' => "Sayang sekali. Pelaksanaan kebersihan kamu ditolak. Silakan cek pesan penolakan pada menu Pelaporan Kebersihan di aplikasi SiAsik."
+                        ];
+                        Mail::to($cleaner->email)->send(new NewReport($maildata));
                     })
                     ->visible(function (Reporting $record) {
                         if ($record->assign_to && $record->status_id == 4) {
