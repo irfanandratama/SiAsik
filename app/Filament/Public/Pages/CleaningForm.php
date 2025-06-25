@@ -145,7 +145,9 @@ class CleaningForm extends BasePage implements HasForms
                 'name' => $cleaner->name,
                 'message' => "Laporan kebersihan baru telah masuk melalui SiAsik di ruang {$room->name} dengan deskripsi {$data['description']}. Silakan membuka aplikasi untuk melihat lebih detail."
             ];
-            Mail::to($cleaner->email)->send(new NewReport($maildata));
+            if ($cleaner->email) {
+                Mail::to($cleaner->email)->send(new NewReport($maildata));
+            }
 
             $value = env('APP_URL', 'http://localhost:8000/');
 
