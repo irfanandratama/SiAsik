@@ -21,6 +21,16 @@ class StatusResource extends Resource
 
     protected static ?string $navigationGroup = 'Master Menu';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('kepala_sub_bagian');
+    }
+
+    public static function canAccess(): bool 
+    { 
+        return auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('kepala_sub_bagian');
+    } 
+
     public static function getModelLabel(): string
     {
         return __('status.title');

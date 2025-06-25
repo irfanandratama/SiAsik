@@ -6,6 +6,7 @@ use Filament\Pages\Auth\Login;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Validation\ValidationException;
 
 class CustomLogin extends Login
 {
@@ -34,7 +35,6 @@ class CustomLogin extends Login
     {
         return TextInput::make('login')
             ->label(__('Username / Email'))
-            // ->email()
             ->required()
             ->autocomplete()
             ->autofocus()

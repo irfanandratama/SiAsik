@@ -21,6 +21,16 @@ class UserResource extends Resource
 
     protected static ?string $navigationGroup = 'Master Menu';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()->hasRole('super_admin');
+    }
+
+    public static function canAccess(): bool 
+    { 
+        return auth()->user()->hasRole('super_admin'); 
+    } 
+
     public static function form(Form $form): Form
     {
         return $form
